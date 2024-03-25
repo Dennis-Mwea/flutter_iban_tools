@@ -1,106 +1,13 @@
-import 'package:flutter_iban_tools/src/country_spec.dart';
-import 'package:flutter_iban_tools/src/country_specs.dart';
-
-/// Interface for validation options
-class ValidateIBANOptions {
-  final bool allowQRIBAN;
-
-  const ValidateIBANOptions({this.allowQRIBAN = true});
-}
-
-class ValidateIBANResult {
-  final List<ValidationErrorsIBAN> errorCodes;
-  final bool valid;
-
-  const ValidateIBANResult({required this.errorCodes, required this.valid});
-
-  ValidateIBANResult copyWith({List<ValidationErrorsIBAN>? errorCodes, bool? valid}) =>
-      ValidateIBANResult(errorCodes: errorCodes ?? this.errorCodes, valid: valid ?? this.valid);
-}
-
-/// Interface for ComposeIBAN parameteres
-class ComposeIBANParams {
-  final String? countryCode;
-  final String? bban;
-
-  const ComposeIBANParams({this.countryCode, this.bban});
-}
-
-/// Interface for ExtractIBAN result
-class ExtractIBANResult {
-  final String iban;
-  final String? bban;
-  final String? countryCode;
-  final String? accountNumber;
-  final String? branchIdentifier;
-  final String? bankIdentifier;
-  final bool valid;
-
-  const ExtractIBANResult(
-      {required this.iban, this.bban, this.countryCode, this.accountNumber, this.branchIdentifier, this.bankIdentifier, this.valid = false});
-}
-
-enum ValidationErrorsIBAN {
-  noIBANProvided,
-  noIBANCountry,
-  wrongBBANLength,
-  wrongBBANFormat,
-  checksumNotNumber,
-  wrongIBANChecksum,
-  wrongAccountBankBranchChecksum,
-  qRIBANNotAllowed
-}
-
-/// BIC validation errors
-enum ValidationErrorsBIC { noBICProvided, noBICCountry, wrongBICFormat }
-
-/// Interface for ValidateBIC result
-class ValidateBICResult {
-  final List<ValidationErrorsBIC> errorCodes;
-  final bool valid;
-
-  const ValidateBICResult({required this.errorCodes, required this.valid});
-
-  ValidateBICResult copyWith({List<ValidationErrorsBIC>? errorCodes, bool? valid}) =>
-      ValidateBICResult(errorCodes: errorCodes ?? this.errorCodes, valid: valid ?? this.valid);
-}
-
-/// Interface for ExtractBIC result
-class ExtractBICResult {
-  final String? bankCode;
-  final String? countryCode;
-  final String? locationCode;
-  final String? branchCode;
-  final bool testBIC;
-  final bool valid;
-
-  const ExtractBICResult({this.bankCode, this.countryCode, this.locationCode, this.branchCode, required this.testBIC, required this.valid});
-
-  ExtractBICResult copyWith({String? bankCode, String? countryCode, String? locationCode, String? branchCode, bool? testBIC, bool? valid}) => ExtractBICResult(
-      bankCode: bankCode ?? this.bankCode,
-      countryCode: countryCode ?? this.countryCode,
-      locationCode: locationCode ?? this.locationCode,
-      branchCode: branchCode ?? this.branchCode,
-      testBIC: testBIC ?? this.testBIC,
-      valid: valid ?? this.valid);
-}
-
-/// Interface for IBAN Country Specification
-///
-/// @ignore
-class CountrySpecInternal {
-  final num? chars;
-  final RegExp? bbanRegexp;
-  final bool Function(String)? bbanValidationFunc;
-  final bool? iBANRegistry; // Is country part of official IBAN registry
-  final bool? sepa; // Is county part of SEPA initiative
-  final String? branchIdentifier;
-  final String? bankIdentifier;
-  final String? accountIdentifier;
-
-  const CountrySpecInternal(
-      {this.chars, this.bbanRegexp, this.bbanValidationFunc, this.iBANRegistry, this.sepa, this.branchIdentifier, this.bankIdentifier, this.accountIdentifier});
-}
+import 'package:flutter_iban_tools/src/models/_country_specs.dart';
+import 'package:flutter_iban_tools/src/models/compose_iban_params.dart';
+import 'package:flutter_iban_tools/src/models/country_spec.dart';
+import 'package:flutter_iban_tools/src/models/extract_bic_result.dart';
+import 'package:flutter_iban_tools/src/models/extract_iban_result.dart';
+import 'package:flutter_iban_tools/src/models/validate_bic_result.dart';
+import 'package:flutter_iban_tools/src/models/validate_iban_options.dart';
+import 'package:flutter_iban_tools/src/models/validate_iban_result.dart';
+import 'package:flutter_iban_tools/src/types/validation_errors_bic.dart';
+import 'package:flutter_iban_tools/src/types/validation_errors_iban.dart';
 
 /// Validate IBAN
 /// ```
@@ -119,7 +26,8 @@ class CountrySpecInternal {
 /// // returns false
 /// ibantools.isValidIBAN('CH4431999123000889012', { allowQRIBAN: false });
 /// ```
-bool isValidIBAN(String iban, {ValidateIBANOptions options = const ValidateIBANOptions()}) {
+bool isValidIBAN(String iban,
+    {ValidateIBANOptions options = const ValidateIBANOptions()}) {
   if (iban.isEmpty) {
     return false;
   }
@@ -153,42 +61,70 @@ bool isValidIBAN(String iban, {ValidateIBANOptions options = const ValidateIBANO
 /// // returns {errorCodes: [7], valid: false}
 /// ibantools.validateIBAN('CH4431999123000889012', { allowQRIBAN: false });
 /// ```
-ValidateIBANResult validateIBAN(String? iban, {ValidateIBANOptions validationOptions = const ValidateIBANOptions()}) {
-  ValidateIBANResult result = const ValidateIBANResult(errorCodes: <ValidationErrorsIBAN>[], valid: true);
+ValidateIBANResult validateIBAN(String? iban,
+    {ValidateIBANOptions validationOptions = const ValidateIBANOptions()}) {
+  ValidateIBANResult result = const ValidateIBANResult(
+      errorCodes: <ValidationErrorsIBAN>[], valid: true);
   if (iban != null && iban.isNotEmpty) {
     final CountrySpec? spec = countrySpecs[iban.substring(0, 2)];
     if (spec == null || !(spec.bbanRegexp != null || spec.chars != null)) {
-      result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.noIBANCountry)));
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsIBAN>.of(
+              result.errorCodes..add(ValidationErrorsIBAN.noIBANCountry)));
       return result;
     }
 
     if (spec.chars != null && spec.chars != iban.length) {
-      result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.wrongBBANLength)));
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsIBAN>.of(
+              result.errorCodes..add(ValidationErrorsIBAN.wrongBBANLength)));
     }
 
-    if (spec.bbanRegexp != null && !_checkFormatBBAN(iban.substring(4), spec.bbanRegexp!)) {
-      result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.wrongBBANFormat)));
+    if (spec.bbanRegexp != null &&
+        !_checkFormatBBAN(iban.substring(4), spec.bbanRegexp!)) {
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsIBAN>.of(
+              result.errorCodes..add(ValidationErrorsIBAN.wrongBBANFormat)));
     }
 
-    if (spec.bbanValidationFunc != null && !spec.bbanValidationFunc!(iban.substring(4))) {
-      result =
-          result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.wrongAccountBankBranchChecksum)));
+    if (spec.bbanValidationFunc != null &&
+        !spec.bbanValidationFunc!(iban.substring(4))) {
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes
+            ..add(ValidationErrorsIBAN.wrongAccountBankBranchChecksum)));
     }
 
-    final reg = RegExp(r'^[0-9]{2}$');
+    final RegExp reg = RegExp(r'^[0-9]{2}$');
     if (!reg.hasMatch(iban.substring(2, 4))) {
-      result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.checksumNotNumber)));
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsIBAN>.of(
+              result.errorCodes..add(ValidationErrorsIBAN.checksumNotNumber)));
     }
 
-    if (result.errorCodes.contains(ValidationErrorsIBAN.wrongBBANFormat) || !isValidIBANChecksum(iban)) {
-      result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.wrongIBANChecksum)));
+    if (result.errorCodes.contains(ValidationErrorsIBAN.wrongBBANFormat) ||
+        !isValidIBANChecksum(iban)) {
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsIBAN>.of(
+              result.errorCodes..add(ValidationErrorsIBAN.wrongIBANChecksum)));
     }
 
     if (!validationOptions.allowQRIBAN && isQRIBAN(iban)) {
-      result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.qRIBANNotAllowed)));
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsIBAN>.of(
+              result.errorCodes..add(ValidationErrorsIBAN.qRIBANNotAllowed)));
     }
   } else {
-    result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsIBAN>.of(result.errorCodes..add(ValidationErrorsIBAN.noIBANProvided)));
+    result = result.copyWith(
+        valid: false,
+        errorCodes: List<ValidationErrorsIBAN>.of(
+            result.errorCodes..add(ValidationErrorsIBAN.noIBANProvided)));
   }
 
   return result;
@@ -211,13 +147,17 @@ bool isValidBBAN(String? bban, String countryCode) {
 
   final CountrySpec? spec = countrySpecs[countryCode];
 
-  if (spec == null || spec == CountrySpec.empty || spec.bbanRegexp == null || spec.chars == null) {
+  if (spec == null ||
+      spec == CountrySpec.empty ||
+      spec.bbanRegexp == null ||
+      spec.chars == null) {
     return false;
   }
 
-  if (spec.chars! - 4 == bban.length && _checkFormatBBAN(bban, spec.bbanRegexp!)) {
+  if (spec.chars! - 4 == bban.length &&
+      _checkFormatBBAN(bban, spec.bbanRegexp!)) {
     if (spec.bbanValidationFunc != null) {
-      return spec.bbanValidationFunc!(bban.replaceAll(RegExp('/[\s.]+/g'), ''));
+      return spec.bbanValidationFunc!(bban.replaceAll(RegExp(r'[\s.]+'), ''));
     }
     return true;
   }
@@ -259,13 +199,13 @@ bool isQRIBAN(String? iban) {
     return false;
   }
 
-  final countryCode = iban.substring(0, 2);
-  final List<String> qRIBANCountries = ['LI', 'CH'];
+  final String countryCode = iban.substring(0, 2);
+  final List<String> qRIBANCountries = <String>['LI', 'CH'];
   if (!qRIBANCountries.contains(countryCode)) {
     return false;
   }
 
-  final reg = RegExp(r'^3[0-1]{1}[0-9]{3}$');
+  final RegExp reg = RegExp(r'^3[0-1]{1}[0-9]{3}$');
 
   return reg.hasMatch(iban.substring(4, 9));
 }
@@ -290,12 +230,9 @@ String? composeIBAN(ComposeIBANParams params) {
       spec.chars == formattedBban.length + 4 &&
       spec.bbanRegexp != null &&
       _checkFormatBBAN(formattedBban, spec.bbanRegexp!)) {
-    final int? checksom = mod9710Iban('${params.countryCode!}00$formattedBban');
-    if (checksom == null) {
-      return null;
-    }
+    final int checksum = mod9710Iban('${params.countryCode!}00$formattedBban');
 
-    return '${params.countryCode!}${('0${(98 - checksom)}').substring(-2)}$formattedBban';
+    return '${params.countryCode!}${('0${(98 - checksum)}').substring(-2)}$formattedBban';
   }
 
   return null;
@@ -308,41 +245,48 @@ String? composeIBAN(ComposeIBANParams params) {
 /// ```
 ExtractIBANResult extractIBAN(String iban) {
   ExtractIBANResult result = ExtractIBANResult(iban: iban);
-// const eFormatIBAN: string | null = electronicFormatIBAN(iban);
-// result.iban = eFormatIBAN || iban;
-// if (!!eFormatIBAN && isValidIBAN(eFormatIBAN)) {
-// result.bban = eFormatIBAN.slice(4);
-// result.countryCode = eFormatIBAN.slice(0, 2);
-// result.valid = true;
-// const spec = countrySpecs[result.countryCode];
-// if (spec.account_indentifier) {
-// const ac = spec.account_indentifier.split('-');
-// const starting = parseInt(ac[0]);
-// const ending = parseInt(ac[1]);
-// result.accountNumber = result.iban.slice(starting, ending + 1);
-// }
-// if (spec.bank_identifier) {
-// const ac = spec.bank_identifier.split('-');
-// const starting = parseInt(ac[0]);
-// const ending = parseInt(ac[1]);
-// result.bankIdentifier = result.bban.slice(starting, ending + 1);
-// }
-// if (spec.branch_indentifier) {
-// const ac = spec.branch_indentifier.split('-');
-// const starting = parseInt(ac[0]);
-// const ending = parseInt(ac[1]);
-// result.branchIdentifier = result.bban.slice(starting, ending + 1);
-// }
-// } else {
-// result.valid = false;
-// }
+  final String? eFormatIBAN = electronicFormatIBAN(iban);
+  result = result.copyWith(iban: eFormatIBAN ?? iban);
+  if (eFormatIBAN != null && isValidIBAN(eFormatIBAN)) {
+    result = result.copyWith(
+        bban: eFormatIBAN.substring(4),
+        countryCode: eFormatIBAN.substring(0, 2),
+        valid: true);
+    final CountrySpec? spec = countrySpecs[result.countryCode];
+    if (spec?.accountIdentifier != null) {
+      final List<String> ac = spec!.accountIdentifier!.split('-');
+      final int starting = int.parse(ac[0]);
+      final int ending = int.parse(ac[1]);
+      result = result.copyWith(
+          accountNumber: result.iban.substring(starting, ending + 1));
+    }
+
+    if (spec?.bankIdentifier != null) {
+      final List<String> ac = spec!.bankIdentifier!.split('-');
+      final int starting = int.parse(ac[0]);
+      final int ending = int.parse(ac[1]);
+      result = result.copyWith(
+          bankIdentifier: result.bban!.substring(starting, ending + 1));
+    }
+
+    if (spec?.branchIdentifier != null) {
+      final List<String> ac = spec!.branchIdentifier!.split('-');
+      final int starting = int.parse(ac[0]);
+      final int ending = int.parse(ac[1]);
+      result = result.copyWith(
+          branchIdentifier: result.bban!.substring(starting, ending + 1));
+    }
+  } else {
+    result = result.copyWith(valid: false);
+  }
+
   return result;
 }
 
 /// Check BBAN format
 ///
 /// @ignore
-bool _checkFormatBBAN(String bban, RegExp bformat) => bformat.hasMatch(bban);
+bool _checkFormatBBAN(String bban, RegExp bFormat) => bFormat.hasMatch(bban);
 
 /// Get IBAN in electronic format (no spaces)
 /// IBAN validation is not performed.
@@ -372,7 +316,7 @@ String? electronicFormatIBAN(String? iban) {
 /// ```
 String? friendlyFormatIBAN(String? iban, String? separator) {
   separator ??= ' ';
-  final electronicIban = electronicFormatIBAN(iban);
+  final String? electronicIban = electronicFormatIBAN(iban);
   if (electronicIban == null) {
     return null;
   }
@@ -383,9 +327,9 @@ String? friendlyFormatIBAN(String? iban, String? separator) {
 ///
 /// @ignore
 bool isValidIBANChecksum(String iban) {
-  final countryCode = iban.substring(0, 2);
-  final providedChecksum = int.parse(iban.substring(2, 4), radix: 10);
-  final bban = iban.substring(4);
+  final String countryCode = iban.substring(0, 2);
+  final int providedChecksum = int.parse(iban.substring(2, 4), radix: 10);
+  final String bban = iban.substring(4);
 
   // Wikipedia[validating_iban] says there are a specif way to check if a IBAN is valid but
   // it. It says 'If the remainder is 1, the check digit test is passed and the
@@ -405,21 +349,22 @@ bool isValidIBANChecksum(String iban) {
   // [validating_iban][https://en.wikipedia.org/wiki/International_Bank_Account_Number#Validating_the_IBAN]
   // [generating-iban-check][https://en.wikipedia.org/wiki/International_Bank_Account_Number#Generating_IBAN_check_digits]
 
-  final validationString = replaceCharaterWithCode('$bban${countryCode}00');
-  final rest = mod9710(validationString);
+  final String validationString =
+      replaceCharacterWithCode('$bban${countryCode}00');
+  final int rest = mod9710(validationString);
 
   return 98 - rest == providedChecksum;
 }
 
-/// Iban contain characters and should be converted to intereger by 55 substracted
+/// Iban contain characters and should be converted to integer by 55 subtracted
 /// from there ascii value
 ///
 /// @ignore
-String replaceCharaterWithCode(String str) {
-// It is slower but alot more readable
-// https://jsbench.me/ttkzgsekae/1
-  return str.split('').map((c) {
-    final code = c.codeUnitAt(0);
+String replaceCharacterWithCode(String str) {
+  // It is slower but a lot more readable
+  // https://jsbench.me/ttkzgsekae/1
+  return str.split('').map((String c) {
+    final int code = c.codeUnitAt(0);
 
     return code >= 65 ? (code - 55).toString() : c;
   }).join('');
@@ -428,7 +373,8 @@ String replaceCharaterWithCode(String str) {
 /// MOD-97-10
 ///
 /// @ignore
-int mod9710Iban(String iban) => mod9710(replaceCharaterWithCode(iban.substring(4) + iban.substring(0, 4)));
+int mod9710Iban(String iban) =>
+    mod9710(replaceCharacterWithCode(iban.substring(4) + iban.substring(0, 4)));
 
 /// Returns specifications for all countries, even those who are not
 /// members of IBAN registry. `IBANRegistry` field indicates if country
@@ -452,10 +398,13 @@ int mod9710Iban(String iban) => mod9710(replaceCharaterWithCode(iban.substring(4
 /// ```
 Map<String, CountrySpec> getCountrySpecifications() {
   Map<String, CountrySpec> countyMap = const <String, CountrySpec>{};
-  countrySpecs.forEach((key, value) {
+  countrySpecs.forEach((String key, CountrySpec value) {
     final CountrySpec? county = countrySpecs[key];
-    countyMap[key] =
-        CountrySpec(chars: county?.chars, bbanRegexp: county?.bbanRegexp, ibanRegistry: county?.ibanRegistry ?? false, sepa: county?.sepa ?? false);
+    countyMap[key] = CountrySpec(
+        chars: county?.chars,
+        bbanRegexp: county?.bbanRegexp,
+        ibanRegistry: county?.ibanRegistry ?? false,
+        sepa: county?.sepa ?? false);
   });
 
   return countyMap;
@@ -480,7 +429,7 @@ bool isValidBIC(String? bic) {
   if (bic == null) {
     return false;
   }
-  final reg = RegExp(r'^[a-zA-Z]{6}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?$');
+  final RegExp reg = RegExp(r'^[a-zA-Z]{6}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?$');
   final CountrySpec? spec = countrySpecs[bic.toUpperCase().substring(4, 6)];
 
   return reg.hasMatch(bic) && spec != null;
@@ -492,19 +441,30 @@ bool isValidBIC(String? bic) {
 /// ibantools.validateBIC("NEDSZAJJXXX");
 /// ```
 ValidateBICResult validateBIC(String? bic) {
-  ValidateBICResult result = const ValidateBICResult(errorCodes: <ValidationErrorsBIC>[], valid: true);
+  ValidateBICResult result =
+      const ValidateBICResult(errorCodes: <ValidationErrorsBIC>[], valid: true);
   if (bic != null && bic.isNotEmpty) {
     final CountrySpec? spec = countrySpecs[bic.toUpperCase().substring(4, 6)];
     if (spec == null) {
-      result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsBIC>.of(result.errorCodes..add(ValidationErrorsBIC.noBICCountry)));
+      result = result.copyWith(
+          valid: false,
+          errorCodes: List<ValidationErrorsBIC>.of(
+              result.errorCodes..add(ValidationErrorsBIC.noBICCountry)));
     } else {
-      final reg = RegExp(r'^[a-zA-Z]{6}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?$');
+      final RegExp reg =
+          RegExp(r'^[a-zA-Z]{6}[a-zA-Z0-9]{2}([a-zA-Z0-9]{3})?$');
       if (!reg.hasMatch(bic)) {
-        result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsBIC>.of(result.errorCodes..add(ValidationErrorsBIC.wrongBICFormat)));
+        result = result.copyWith(
+            valid: false,
+            errorCodes: List<ValidationErrorsBIC>.of(
+                result.errorCodes..add(ValidationErrorsBIC.wrongBICFormat)));
       }
     }
   } else {
-    result = result.copyWith(valid: false, errorCodes: List<ValidationErrorsBIC>.of(result.errorCodes..add(ValidationErrorsBIC.noBICProvided)));
+    result = result.copyWith(
+        valid: false,
+        errorCodes: List<ValidationErrorsBIC>.of(
+            result.errorCodes..add(ValidationErrorsBIC.noBICProvided)));
   }
   return result;
 }
@@ -515,8 +475,9 @@ ValidateBICResult validateBIC(String? bic) {
 /// ibantools.extractBIC("ABNANL2A");
 /// ```
 ExtractBICResult extractBIC(String inputBic) {
-  ExtractBICResult result = const ExtractBICResult(bankCode: '', testBIC: false, valid: false);
-  final bic = inputBic.toUpperCase();
+  ExtractBICResult result =
+      const ExtractBICResult(bankCode: '', testBIC: false, valid: false);
+  final String bic = inputBic.toUpperCase();
   if (isValidBIC(bic)) {
     result = result.copyWith(
         bankCode: bic.substring(0, 4),
@@ -535,15 +496,19 @@ ExtractBICResult extractBIC(String inputBic) {
 ///
 /// @ignore
 bool checkNorwayBBAN(String bban) {
-  const weights = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-  final bbanWithoutSpacesAndPeriods = bban.replaceAll(RegExp(r'[\s.]+'), '');
-  final controlDigit = int.parse(bbanWithoutSpacesAndPeriods[10], radix: 10);
-  final bbanWithoutControlDigit = bbanWithoutSpacesAndPeriods.substring(0, 10);
+  const List<int> weights = <int>[5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+  final String bbanWithoutSpacesAndPeriods =
+      bban.replaceAll(RegExp(r'[\s.]+'), '');
+  final int controlDigit =
+      int.parse(bbanWithoutSpacesAndPeriods[10], radix: 10);
+  final String bbanWithoutControlDigit =
+      bbanWithoutSpacesAndPeriods.substring(0, 10);
   int sum = 0;
   for (int index = 0; index < 10; index++) {
-    sum += int.parse(bbanWithoutControlDigit[index], radix: 10) * weights[index];
+    sum +=
+        int.parse(bbanWithoutControlDigit[index], radix: 10) * weights[index];
   }
-  final remainder = sum % 11;
+  final int remainder = sum % 11;
 
   return controlDigit == (remainder == 0 ? 0 : 11 - remainder);
 }
@@ -552,10 +517,13 @@ bool checkNorwayBBAN(String bban) {
 ///
 /// @ignore
 bool checkBelgianBBAN(String bban) {
-  final stripped = bban.replaceAll(RegExp(r'[\s.]+'), '');
-  final checkingPart = int.parse(stripped.substring(0, stripped.length - 2), radix: 10);
-  final checksum = int.parse(stripped.substring(stripped.length - 2, stripped.length), radix: 10);
-  final remainder = checkingPart % 97 == 0 ? 97 : checkingPart % 97;
+  final String stripped = bban.replaceAll(RegExp(r'[\s.]+'), '');
+  final int checkingPart =
+      int.parse(stripped.substring(0, stripped.length - 2), radix: 10);
+  final int checksum = int.parse(
+      stripped.substring(stripped.length - 2, stripped.length),
+      radix: 10);
+  final int remainder = checkingPart % 97 == 0 ? 97 : checkingPart % 97;
 
   return remainder == checksum;
 }
@@ -577,8 +545,9 @@ int mod9710(String validationString) {
       part = validationString;
     }
 
-    final partInt = int.parse(part, radix: 10);
-    validationString = '${(partInt % 97)}${validationString.substring(part.length)}';
+    final int partInt = int.parse(part, radix: 10);
+    validationString =
+        '${(partInt % 97)}${validationString.substring(part.length)}';
   }
   return int.parse(validationString, radix: 10) % 97;
 }
@@ -588,8 +557,8 @@ int mod9710(String validationString) {
 ///
 /// @ignore
 bool checkMod9710BBAN(String bban) {
-  final stripped = bban.replaceAll(RegExp(r'[\s.]+'), '');
-  final reminder = mod9710(stripped);
+  final String stripped = bban.replaceAll(RegExp(r'[\s.]+'), '');
+  final int reminder = mod9710(stripped);
 
   return reminder == 1;
 }
@@ -598,14 +567,14 @@ bool checkMod9710BBAN(String bban) {
 ///
 /// @ignore
 bool checkPolandBBAN(String bban) {
-  const weights = [3, 9, 7, 1, 3, 9, 7];
-  final controlDigit = int.parse(bban[7], radix: 10);
-  final toCheck = bban.substring(0, 7);
+  const List<int> weights = <int>[3, 9, 7, 1, 3, 9, 7];
+  final int controlDigit = int.parse(bban[7], radix: 10);
+  final String toCheck = bban.substring(0, 7);
   int sum = 0;
   for (int index = 0; index < 7; index++) {
     sum += int.parse(toCheck[index], radix: 10) * weights[index];
   }
-  final remainder = sum % 10;
+  final int remainder = sum % 10;
 
   return controlDigit == (remainder == 0 ? 0 : 10 - remainder);
 }
@@ -614,12 +583,12 @@ bool checkPolandBBAN(String bban) {
 ///
 /// @ignore
 bool checkSpainBBAN(String bban) {
-  const weightsBankBranch = [4, 8, 5, 10, 9, 7, 3, 6];
-  const weightsAccount = [1, 2, 4, 8, 5, 10, 9, 7, 3, 6];
-  final controlBankBranch = int.parse(bban[8], radix: 10);
-  final controlAccount = int.parse(bban[9], radix: 10);
-  final bankBranch = bban.substring(0, 8);
-  final account = bban.substring(10, 20);
+  const List<int> weightsBankBranch = <int>[4, 8, 5, 10, 9, 7, 3, 6];
+  const List<int> weightsAccount = <int>[1, 2, 4, 8, 5, 10, 9, 7, 3, 6];
+  final int controlBankBranch = int.parse(bban[8], radix: 10);
+  final int controlAccount = int.parse(bban[9], radix: 10);
+  final String bankBranch = bban.substring(0, 8);
+  final String account = bban.substring(10, 20);
   int sum = 0;
   for (int index = 0; index < 8; index++) {
     sum += int.parse(bankBranch[index], radix: 10) * weightsBankBranch[index];
@@ -666,24 +635,25 @@ bool checkMod1110(String toCheck, num control) {
 ///
 /// @ignore
 bool checkCroatianBBAN(String bban) {
-  final controlBankBranch = int.parse(bban[6], radix: 10);
-  final controlAccount = int.parse(bban[16], radix: 10);
-  final bankBranch = bban.substring(0, 6);
-  final account = bban.substring(7, 16);
+  final int controlBankBranch = int.parse(bban[6], radix: 10);
+  final int controlAccount = int.parse(bban[16], radix: 10);
+  final String bankBranch = bban.substring(0, 6);
+  final String account = bban.substring(7, 16);
 
-  return checkMod1110(bankBranch, controlBankBranch) && checkMod1110(account, controlAccount);
+  return checkMod1110(bankBranch, controlBankBranch) &&
+      checkMod1110(account, controlAccount);
 }
 
 /// Czech (CZ) and Slowak (SK) BBAN check
 ///
 /// @ignore
 bool checkCzechAndSlovakBBAN(String bban) {
-  const weightsPrefix = [10, 5, 8, 4, 2, 1];
-  const weightsSuffix = [6, 3, 7, 9, 10, 5, 8, 4, 2, 1];
-  final controlPrefix = int.parse(bban[9], radix: 10);
-  final controlSuffix = int.parse(bban[19], radix: 10);
-  final prefix = bban.substring(4, 9);
-  final suffix = bban.substring(10, 19);
+  const List<int> weightsPrefix = <int>[10, 5, 8, 4, 2, 1];
+  const List<int> weightsSuffix = <int>[6, 3, 7, 9, 10, 5, 8, 4, 2, 1];
+  final int controlPrefix = int.parse(bban[9], radix: 10);
+  final int controlSuffix = int.parse(bban[19], radix: 10);
+  final String prefix = bban.substring(4, 9);
+  final String suffix = bban.substring(10, 19);
   int sum = 0;
   for (int index = 0; index < prefix.length; index++) {
     sum += int.parse(prefix[index], radix: 10) * weightsPrefix[index];
@@ -714,14 +684,14 @@ bool checkCzechAndSlovakBBAN(String bban) {
 ///
 /// @ignore
 bool checkEstonianBBAN(String bban) {
-  const weights = <int>[7, 1, 3, 7, 1, 3, 7, 1, 3, 7, 1, 3, 7];
-  final controlDigit = int.parse(bban[15], radix: 10);
-  final toCheck = bban.substring(2, 15);
+  const List<int> weights = <int>[7, 1, 3, 7, 1, 3, 7, 1, 3, 7, 1, 3, 7];
+  final int controlDigit = int.parse(bban[15], radix: 10);
+  final String toCheck = bban.substring(2, 15);
   int sum = 0;
   for (int index = 0; index < toCheck.length; index++) {
     sum += int.parse(toCheck[index], radix: 10) * weights[index];
   }
-  final remainder = sum % 10;
+  final int remainder = sum % 10;
 
   return controlDigit == (remainder == 0 ? 0 : 10 - remainder);
 }
@@ -731,10 +701,10 @@ bool checkEstonianBBAN(String bban) {
 ///
 /// @ignore
 bool checkFrenchBBAN(String bban) {
-  final stripped = bban.replaceAll(RegExp(r'[\s.]+'), '');
-  final normalized = stripped.split('');
+  final String stripped = bban.replaceAll(RegExp(r'[\s.]+'), '');
+  final List<String> normalized = stripped.split('');
   for (int index = 0; index < stripped.length; index++) {
-    final c = normalized[index].codeUnitAt(0);
+    final int c = normalized[index].codeUnitAt(0);
     if (c >= 65) {
       switch (c) {
         case 65:
@@ -784,7 +754,7 @@ bool checkFrenchBBAN(String bban) {
       }
     }
   }
-  final remainder = mod9710(normalized.join(''));
+  final int remainder = mod9710(normalized.join(''));
   return remainder == 0;
 }
 
@@ -792,7 +762,7 @@ bool checkFrenchBBAN(String bban) {
 ///
 /// @ignore
 bool checkHungarianBBAN(String bban) {
-  const weights = <int>[9, 7, 3, 1, 9, 7, 3, 1, 9, 7, 3, 1, 9, 7, 3];
+  const List<int> weights = <int>[9, 7, 3, 1, 9, 7, 3, 1, 9, 7, 3, 1, 9, 7, 3];
   final int controlDigitBankBranch = int.parse(bban[7], radix: 10);
   final String toCheckBankBranch = bban.substring(0, 7);
   int sum = 0;
@@ -805,16 +775,16 @@ bool checkHungarianBBAN(String bban) {
   }
   sum = 0;
   if (bban.endsWith('00000000')) {
-    final toCheckAccount = bban.substring(8, 15);
-    final controlDigitAccount = int.parse(bban[15], radix: 10);
+    final String toCheckAccount = bban.substring(8, 15);
+    final int controlDigitAccount = int.parse(bban[15], radix: 10);
     for (int index = 0; index < toCheckAccount.length; index++) {
       sum += int.parse(toCheckAccount[index], radix: 10) * weights[index];
     }
     int remainder = sum % 10;
     return controlDigitAccount == (remainder == 0 ? 0 : 10 - remainder);
   } else {
-    final toCheckAccount = bban.substring(8, 23);
-    final controlDigitAccount = int.parse(bban[23], radix: 10);
+    final String toCheckAccount = bban.substring(8, 23);
+    final int controlDigitAccount = int.parse(bban[23], radix: 10);
     for (int index = 0; index < toCheckAccount.length; index++) {
       sum += int.parse(toCheckAccount[index], radix: 10) * weights[index];
     }
@@ -832,7 +802,8 @@ bool setCountryBBANValidation(String country, bool Function(String) func) {
     return false;
   }
 
-  countrySpecs.update(country, (CountrySpec value) => value.copyWith(bbanValidationFunc: func));
+  countrySpecs.update(
+      country, (CountrySpec value) => value.copyWith(bbanValidationFunc: func));
 
   return true;
 }

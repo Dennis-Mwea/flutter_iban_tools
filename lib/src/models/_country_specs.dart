@@ -1,5 +1,5 @@
-import 'package:flutter_iban_tools/src/country_spec.dart';
 import 'package:flutter_iban_tools/src/flutter_iban_tools.dart';
+import 'package:flutter_iban_tools/src/models/country_spec.dart';
 
 Map<String, CountrySpec> countrySpecs = <String, CountrySpec>{
   'AD': CountrySpec(

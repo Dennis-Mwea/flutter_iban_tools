@@ -1,5 +1,5 @@
 name: flutter_iban_tools
-description: "A new Flutter project."
+description: "Flutter IBANTools is Flutter/Dart library for validation, creation and extraction of IBAN, BBAN and BIC/SWIFT numbers."
 version: 0.1.0
 homepage: https://github.com/Dennis-Mwea/flutter_iban_tools
 

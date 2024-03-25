@@ -10,20 +10,20 @@ import 'package:flutter_iban_tools/src/types/validation_errors_bic.dart';
 import 'package:flutter_iban_tools/src/types/validation_errors_iban.dart';
 
 /// Validate IBAN
-/// ```
-/// // returns true
+/// ```dart
+/// returns `true`
 /// ibantools.isValidIBAN("NL91ABNA0417164300");
 /// ```
-/// ```
-/// // returns false
+/// ```dart
+/// returns `false`
 /// ibantools.isValidIBAN("NL92ABNA0517164300");
 /// ```
-/// ```
-/// // returns true
+/// ```dart
+/// returns `true`
 /// ibantools.isValidIBAN('CH4431999123000889012');
 /// ```
-/// ```
-/// // returns false
+/// ```dart
+/// // returns `false`
 /// ibantools.isValidIBAN('CH4431999123000889012', { allowQRIBAN: false });
 /// ```
 bool isValidIBAN(String iban,
@@ -48,17 +48,17 @@ bool isValidIBAN(String iban,
 }
 
 /// validateIBAN
+/// ```dart
+/// // `returns ValidateIBANResult(errorCodes: <ValidationErrorsIBAN>[], valid: true)`
+/// ibantools.validateIBAN("NL91ABNA0417164300");
 /// ```
-/// // returns {errorCodes: [], valid: true}
-/// barstools.validateIBAN("NL91ABNA0417164300");
 /// ```
-/// ```
-/// ```
-/// // returns {errorCodes: [], valid: true}
+/// ```dart
+/// // `returns ValidateIBANResult(errorCodes: <ValidationErrorsIBAN>[], valid: true)`
 /// ibantools.validateIBAN('CH4431999123000889012');
 /// ```
-/// ```
-/// // returns {errorCodes: [7], valid: false}
+/// ```dart
+/// // returns `ValidateIBANResult(errorCodes: <ValidationErrorsIBAN>[ValidationErrorsIBAN.wrongAccountBankBranchChecksum], valid: false)`
 /// ibantools.validateIBAN('CH4431999123000889012', { allowQRIBAN: false });
 /// ```
 ValidateIBANResult validateIBAN(String? iban,
@@ -132,12 +132,12 @@ ValidateIBANResult validateIBAN(String? iban,
 
 /// Validate BBAN
 ///
-/// ```
-/// // returns true
+/// ```dart
+/// // returns `true`
 /// ibantools.isValidBBAN("ABNA0417164300", "NL");
 /// ```
-/// ```
-/// // returns false
+/// ```dart
+/// // returns `false`
 /// ibantools.isValidBBAN("A7NA0517164300", "NL");
 /// ```
 bool isValidBBAN(String? bban, String countryCode) {
@@ -166,12 +166,12 @@ bool isValidBBAN(String? bban, String countryCode) {
 }
 
 /// Validate if country code is from a SEPA country
-/// ```
-/// // returns true
+/// ```dart
+/// // returns `true`
 /// ibantools.isSEPACountry("NL");
 /// ```
-/// ```
-/// // returns false
+/// ```dart
+/// // returns `false`
 /// ibantools.isSEPACountry("PK");
 /// ```
 bool isSEPACountry(String countryCode) {
@@ -186,13 +186,13 @@ bool isSEPACountry(String countryCode) {
 }
 
 /// Check if IBAN is QR-IBAN
-/// ```
-/// // returns true
+/// ```dart
+/// // returns `true`
 /// ibantools.isQRIBAN("CH4431999123000889012");
 /// ```
-/// ```
-/// // returns false
-/// barstools.isQRIBAN("NL92ABNA0517164300");
+/// ```dart
+/// // returns `false`
+/// ibantools.isQRIBAN("NL92ABNA0517164300");
 /// ```
 bool isQRIBAN(String? iban) {
   if (iban == null || iban.isEmpty) {
@@ -212,8 +212,8 @@ bool isQRIBAN(String? iban) {
 
 /// composeIBAN
 ///
-/// ```
-/// // returns NL91ABNA0417164300
+/// ```dart
+/// // returns `NL91ABNA0417164300`
 /// ibantools.composeIBAN({ countryCode: "NL", bban: "ABNA0417164300" });
 /// ```
 String? composeIBAN(ComposeIBANParams params) {
@@ -239,8 +239,8 @@ String? composeIBAN(ComposeIBANParams params) {
 }
 
 /// extractIBAN
-/// ```
-/// // returns {iban: "NL91ABNA0417164300", bban: "ABNA0417164300", countryCode: "NL", valid: true, accountNumber: '0417164300', bankIdentifier: 'ABNA'}
+/// ```dart
+/// // returns `ExtractIBANResult(iban: "NL91ABNA0417164300", bban: "ABNA0417164300", countryCode: "NL", valid: true, accountNumber: '0417164300', bankIdentifier: 'ABNA')`
 /// ibantools.extractIBAN("NL91 ABNA 0417 1643 00");
 /// ```
 ExtractIBANResult extractIBAN(String iban) {
@@ -291,8 +291,8 @@ bool _checkFormatBBAN(String bban, RegExp bFormat) => bFormat.hasMatch(bban);
 /// Get IBAN in electronic format (no spaces)
 /// IBAN validation is not performed.
 /// When non-string value for IBAN is provided, returns null.
-/// ```
-/// // returns "NL91ABNA0417164300"
+/// ```dart
+/// // returns `"NL91ABNA0417164300"`
 /// ibantools.electronicFormatIBAN("NL91 ABNA 0417 1643 00");
 /// ```
 String? electronicFormatIBAN(String? iban) {
@@ -306,12 +306,12 @@ String? electronicFormatIBAN(String? iban) {
 /// Get IBAN in friendly format (separated after every 4 characters)
 /// IBAN validation is not performed.
 /// When non-string value for IBAN is provided, returns null.
+/// ```dart
+/// // returns `"NL91 ABNA 0417 1643 00"`
+/// ibantools.friendlyFormatIBAN("NL91ABNA0417164300");
 /// ```
-/// // returns "NL91 ABNA 0417 1643 00"
-/// barstools.friendlyFormatIBAN("NL91ABNA0417164300");
-/// ```
-/// ```
-/// // returns "NL91-ABNA-0417-1643-00"
+/// ```dart
+/// // returns `"NL91-ABNA-0417-1643-00"`
 /// ibantools.friendlyFormatIBAN("NL91ABNA0417164300","-");
 /// ```
 String? friendlyFormatIBAN(String? iban, String? separator) {
@@ -380,21 +380,19 @@ int mod9710Iban(String iban) =>
 /// members of IBAN registry. `IBANRegistry` field indicates if country
 /// is member of not.
 ///
-/// ```
+/// ```dart
 /// // Validating IBAN form field after user selects his country
-/// // <select id="countries">
-/// //   ...
-/// //   <option value="NL">Netherlands</option>
-/// //   ...
-/// // </select>
-/// $("#countries").select(function() {
-///   // Find country
-///   let country = ibantools.getCountrySpecifications()[$(this).val()];
-///   // Add country code letters to IBAN form field
-///   $("input#iban").value($(this).val());
-///   // Add New value to "pattern" attribute to #iban input text field
-///   $("input#iban").attr("pattern", $(this).val() + "[0-9]{2}" + country.bban_regexp.slice(1).replace("$",""));
-/// });
+/// DropDownFormField<Country>(
+///   ...
+///   items: countries.map((Country country) => DropDownMenuButton<Country>(child: Text(country.name), value: country)
+///   ...
+///   onChanged: (Country? value) {
+///     // Find country
+///     var ibanCountry = ibantools.getCountrySpecifications()[value.code];
+///     // Add New value to "pattern" attribute to iban input text field
+///     final countryValidation = '${value.code}"[0-9]{2}${country.ibanCountry.substring(1).replaceAll("$","")}'
+///   }
+/// )
 /// ```
 Map<String, CountrySpec> getCountrySpecifications() {
   Map<String, CountrySpec> countyMap = const <String, CountrySpec>{};
@@ -412,17 +410,17 @@ Map<String, CountrySpec> getCountrySpecifications() {
 
 /// Validate BIC/SWIFT
 ///
-/// ```
-/// // returns true
+/// ```dart
+/// // returns `true`
 /// ibantools.isValidBIC("ABNANL2A");
 ///
-/// // returns true
+/// // returns `true`
 /// ibantools.isValidBIC("NEDSZAJJXXX");
 ///
-/// // returns false
+/// // returns `false`
 /// ibantools.isValidBIC("ABN4NL2A");
 ///
-/// // returns false
+/// // returns `false`
 /// ibantools.isValidBIC("ABNA NL 2A");
 /// ```
 bool isValidBIC(String? bic) {
@@ -436,8 +434,8 @@ bool isValidBIC(String? bic) {
 }
 
 /// validateBIC
-/// ```
-/// // returns {errorCodes: [], valid: true}
+/// ```dart
+/// // returns `ValidateBICResult(errorCodes: <ValidationErrorsBIC>[], valid: true)`
 /// ibantools.validateBIC("NEDSZAJJXXX");
 /// ```
 ValidateBICResult validateBIC(String? bic) {
@@ -470,8 +468,8 @@ ValidateBICResult validateBIC(String? bic) {
 }
 
 /// extractBIC
-/// ```
-/// // returns {bankCode: "ABNA", countryCode: "NL", locationCode: "2A", branchCode: null, testBIC: false, valid: true}
+/// ```dart
+/// // returns `ExtractBICResult(bankCode: "ABNA", countryCode: "NL", locationCode: "2A", branchCode: null, testBIC: false, valid: true)`
 /// ibantools.extractBIC("ABNANL2A");
 /// ```
 ExtractBICResult extractBIC(String inputBic) {
@@ -795,7 +793,7 @@ bool checkHungarianBBAN(String bban) {
 
 /// Set custom BBAN validation function for country.
 ///
-/// If `bban_validation_func` already exists for the corresponding country,
+/// If `bbanValidationFunc` already exists for the corresponding country,
 /// it will be overwritten.
 bool setCountryBBANValidation(String country, bool Function(String) func) {
   if (countrySpecs[country] == null) {

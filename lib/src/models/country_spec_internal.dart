@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 /// Interface for IBAN Country Specification
-///
-/// @ignore
 class CountrySpecInternal extends Equatable {
   final num? chars;
   final RegExp? bbanRegexp;

@@ -1,3 +1,4 @@
+/// Interface for ValidateIBAN result
 enum ValidationErrorsIBAN {
   noIBANProvided,
   noIBANCountry,

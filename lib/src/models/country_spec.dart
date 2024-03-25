@@ -1,3 +1,4 @@
+/// Interface for IBAN Country Specification
 class CountrySpec {
   final bool? sepa;
   final int? chars;
@@ -9,7 +10,14 @@ class CountrySpec {
   final bool Function(String)? bbanValidationFunc;
 
   const CountrySpec(
-      {this.sepa, this.chars, this.ibanRegistry, this.bankIdentifier, this.bbanRegexp, this.branchIdentifier, this.accountIdentifier, this.bbanValidationFunc});
+      {this.sepa,
+      this.chars,
+      this.ibanRegistry,
+      this.bankIdentifier,
+      this.bbanRegexp,
+      this.branchIdentifier,
+      this.accountIdentifier,
+      this.bbanValidationFunc});
 
   static const CountrySpec empty = CountrySpec();
 

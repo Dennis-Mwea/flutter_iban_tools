@@ -1,7 +1,7 @@
 name: flutter_iban_tools
 description: "A new Flutter project."
-publish_to: 'none'
 version: 0.1.0
+homepage: https://github.com/Dennis-Mwea/flutter_iban_tools
 
 environment:
   sdk: '>=3.3.0 <4.0.0'

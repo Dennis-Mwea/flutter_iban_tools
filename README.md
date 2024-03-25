@@ -13,7 +13,7 @@
 
 ## About
 
-Flutter IBANTools is Flutter/Dart library for validation, creation and extraction of IBAN, BBAN and BIC/SWIFT numbers. Inspired by [ibantools](https://github.com/Simplify/ibantools)
+Flutter IBANTools is Flutter/Dart library for validation, creation and extraction of IBAN, BBAN and BIC/SWIFT numbers. Inspired by [Simplify/ibantools](https://github.com/Simplify/ibantools)
 
 For more information about IBAN/BBAN see [wikipedia page](https://en.wikipedia.org/wiki/International_Bank_Account_Number) and
 [IBAN registry](https://www.swift.com/resource/iban-registry-pdf).
